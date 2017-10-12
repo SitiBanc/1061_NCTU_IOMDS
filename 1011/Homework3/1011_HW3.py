@@ -6,6 +6,7 @@ Created on Thu Oct 12 13:26:32 2017
 @author: sitibanc
 """
 import math
+import numpy as np
 from sklearn import datasets
 
 def entropy(p1, n1):        # postive, negative
@@ -98,6 +99,7 @@ def buildDT(feature, target, positive, negative):
                 else:
                     tree[i]['decision'] = negative
         i += 1
+        return tree
 
 def testDT(tree, test_feature, test_target):
     now = 0
@@ -114,25 +116,72 @@ def testDT(tree, test_feature, test_target):
         return True
     else:
         return False
+    
+def predictDT(tree, test_feature):
+    now = 0
+    while tree[now]['leaf'] == 0:
+        bestf = tree[now]['selectf']
+        threshold = tree[now]['threshold']
+        # 屬於左子樹
+        if test_feature[bestf] <= threshold:
+            now = tree[now]['child'][0]
+        # 屬於右子樹
+        else:
+            now = tree[now]['child'][1]
+    return tree[now]['descion']
 
 ### Main ###
 # Load Data
 iris = datasets.load_iris()
 # Separate data & target according to its target value
-data1 = iris.data[:50]
-data2 = iris.data[50:100]
-data3 = iris.data[100:]
-target1 = iris.target[:50]
-target2 = iris.target[50:100]
-target3 = iris.target[100:]
+data0 = iris.data[:50]
+data1 = iris.data[50:100]
+data2 = iris.data[100:]
+targets0 = iris.target[:50]
+targets1 = iris.target[50:100]
+targets2 = iris.target[100:]
+
+prediction = [0] * 150
+error = 0
 
 # Leave-one-out
 for i in range(len(iris.data)):
     # Initial vote
-    vote = 0
-    # Separate Feature & Target & Remove[i] data (Leave-one-out)
+    vote = [0, 0, 0]
+    # Separate Feature & Target
+    feature0 = data0
+    feature1 = data1
+    feature2 = data2
+    target0 = targets0
+    target1 = targets1
+    target2 = targets2
+    # Remove[i] data (Leave-one-out)
     if i < 50:
-        data1
-    feature = datas.remove(datas[idx])
-    target = targets.remove(targets[idx])
-    
+        feature0 = np.delete(feature0, i, 0)
+        target0 = np.delete(target0, i, 0)
+    elif i < 100:
+        feature1 = np.delete(feature1, i % 50, 0)
+        target1 = np.delete(target1, i % 50, 0)
+    else:
+        feature2 = np.delete(feature2, i % 50, 0)
+        target2 = np.delete(target2, i % 50, 0)
+    # Stack arrays in sequence vertically (row wise).
+    tree01 = buildDT(np.vstack((feature0, feature1)), np.append(target0, target1), 0, 1)
+    tree02 = buildDT(np.vstack((feature0, feature2)), np.append(target0, target2), 0, 2)
+    tree12 = buildDT(np.vstack((feature1, feature2)), np.append(target1, target2), 1, 2)
+    vote[predictDT(tree01, iris.data[i])] += 1
+    vote[predictDT(tree02, iris.data[i])] += 1
+    vote[predictDT(tree12, iris.data[i])] += 1
+    # 檢查是否同票
+    if max(vote) == 1:
+        prediction[i] = 0
+    else:
+        for j in range(3):
+            if vote[j] > 1:
+                max_idx = j
+        prediction[i] = j
+# Calculate Error Rate
+for i in range(len(iris.target)):
+    if iris.target[i] != prediction[i]:
+        error += 1
+print('Error Rate:', error / len(iris.target))
