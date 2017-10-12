@@ -6,7 +6,6 @@ Created on Thu Oct 12 13:26:32 2017
 @author: sitibanc
 """
 import math
-import numpy as np
 from sklearn import datasets
 
 def entropy(p1, n1):        # postive, negative
@@ -100,13 +99,40 @@ def buildDT(feature, target, positive, negative):
                     tree[i]['decision'] = negative
         i += 1
 
+def testDT(tree, test_feature, test_target):
+    now = 0
+    while tree[now]['leaf'] == 0:
+        bestf = tree[now]['selectf']
+        threshold = tree[now]['threshold']
+        # 屬於左子樹
+        if test_feature[bestf] <= threshold:
+            now = tree[now]['child'][0]
+        # 屬於右子樹
+        else:
+            now = tree[now]['child'][1]
+    if tree[now]['descion'] == test_target:
+        return True
+    else:
+        return False
 
 ### Main ###
+# Load Data
 iris = datasets.load_iris()
-datas = iris.data
-targets = iris.target
+# Separate data & target according to its target value
+data1 = iris.data[:50]
+data2 = iris.data[50:100]
+data3 = iris.data[100:]
+target1 = iris.target[:50]
+target2 = iris.target[50:100]
+target3 = iris.target[100:]
+
 # Leave-one-out
 for i in range(len(iris.data)):
-    # Seperate Feature & Target
-    feature = datas.remove(datas[i])
-    target = targets.remove(targets[i])
+    # Initial vote
+    vote = 0
+    # Separate Feature & Target & Remove[i] data (Leave-one-out)
+    if i < 50:
+        data1
+    feature = datas.remove(datas[idx])
+    target = targets.remove(targets[idx])
+    
