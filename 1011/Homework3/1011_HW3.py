@@ -47,10 +47,10 @@ def buildDT(feature, target, positive, negative):
     while i < len(tree):
         idx = tree[i]['data']
         # data中的值是否相同
-        if sum(target[idx]) == negative:   #全負
+        if sum(target[idx] == negative) == len(idx):   #全負
             tree[i]['leaf'] = 1  # is leaf node
             tree[i]['decision'] = negative
-        elif sum(target[idx]) == len(idx):  #全正
+        elif sum(target[idx] == positive) == len(idx):  #全正
             tree[i]['leaf'] = 1
             tree[i]['decision'] = positive
         # 試圖找出最好的切分方法
