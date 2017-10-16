@@ -37,20 +37,20 @@ def buildDT(feature, target, positive, negative):
     # root node
     node = dict()
     node['data'] = range(len(target))
-    
+
     ### tree structure (list)
     tree = []
     tree.append(node)
     ###
-    
+
     i = 0
     while i < len(tree):
         idx = tree[i]['data']
         # data中的值是否相同
-        if sum(target[idx] == negative) == len(idx):   #全負
+        if sum(target[idx] == negative) == len(idx):   # 全負
             tree[i]['leaf'] = 1  # is leaf node
             tree[i]['decision'] = negative
-        elif sum(target[idx] == positive) == len(idx):  #全正
+        elif sum(target[idx] == positive) == len(idx):  # 全正
             tree[i]['leaf'] = 1
             tree[i]['decision'] = positive
         # 試圖找出最好的切分方法
@@ -58,11 +58,12 @@ def buildDT(feature, target, positive, negative):
             bestIG = 0
             # 從該node(tree[j])中取出集合，決定threshold
             for j in range(feature.shape[1]):       # feature.shape回傳(rows長度, columns長度)的tuple
-                pool = list(set(feature[idx, j]))   #以集合觀念處理去掉重複的值
+                pool = list(set(feature[idx, j]))   # 以集合觀念處理去掉重複的值（feature的可能值）
+                pool.sort()                         # pool排序讓後續（第64行能正常執行）
                 for k in range(len(pool) - 1):
                     threshold = (pool[k] + pool[k + 1]) / 2
-                    G1 = []     #左子樹
-                    G2 = []     #右子樹
+                    G1 = []     # 左子樹
+                    G2 = []     # 右子樹
                     for t in idx:
                         if feature[t, j] <= threshold:
                             G1.append(t)
@@ -81,7 +82,7 @@ def buildDT(feature, target, positive, negative):
                 tree[i]['leaf'] = 0
                 tree[i]['selectf'] = bestf
                 tree[i]['threshold'] = bestThreshold
-                tree[i]['child'] = [len(tree),len(tree) + 1]
+                tree[i]['child'] = [len(tree), len(tree) + 1]
                 # 先放左子樹
                 node = dict()
                 node['data'] = bestG1
@@ -116,7 +117,7 @@ def testDT(tree, test_feature, test_target):
         return True
     else:
         return False
-    
+
 def predictDT(tree, test_feature):
     now = 0
     while tree[now]['leaf'] == 0:
@@ -133,6 +134,7 @@ def predictDT(tree, test_feature):
 ### Main ###
 # Load Data
 iris = datasets.load_iris()
+# Data Preprocessing
 # Separate data & target according to its target value
 data0 = iris.data[:50]
 data1 = iris.data[50:100]
