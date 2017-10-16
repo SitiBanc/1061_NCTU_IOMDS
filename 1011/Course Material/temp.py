@@ -98,7 +98,7 @@ def buildDT(feature, target, positive, negative):
                 else:
                     tree[i]['decision'] = negative
         i += 1
-        return tree
+    return tree
     
 data = np.loadtxt('PlayTennis.txt',usecols=range(5),dtype=int)
 feature = data[:,0:4]
@@ -113,9 +113,11 @@ def DT(feature, target):
     while(t<len(Tree)):
         idx = Tree[t]['data']
         if(sum(target[idx])==0):
+            print(idx)
             Tree[t]['leaf']=1
             Tree[t]['decision']=0
         elif(sum(target[idx])==len(idx)):
+            print(idx)
             Tree[t]['leaf']=1
             Tree[t]['decision']=1
         else:
@@ -160,6 +162,7 @@ def DT(feature, target):
 
 Tree = buildDT(feature, target, 1, 0)
 #Tree = DT(feature, target)
+
 for i in range(len(target)):
     test_feature = feature[i,:]
     now = 0
@@ -171,3 +174,4 @@ for i in range(len(target)):
         else:
             now = Tree[now]['child'][1]
     print(target[i],Tree[now]['decision'])
+    

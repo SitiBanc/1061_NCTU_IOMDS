@@ -99,7 +99,7 @@ def buildDT(feature, target, positive, negative):
                 else:
                     tree[i]['decision'] = negative
         i += 1
-        return tree
+    return tree
 
 def testDT(tree, test_feature, test_target):
     now = 0
@@ -112,7 +112,7 @@ def testDT(tree, test_feature, test_target):
         # 屬於右子樹
         else:
             now = tree[now]['child'][1]
-    if tree[now]['descion'] == test_target:
+    if tree[now]['decision'] == test_target:
         return True
     else:
         return False
@@ -128,7 +128,7 @@ def predictDT(tree, test_feature):
         # 屬於右子樹
         else:
             now = tree[now]['child'][1]
-    return tree[now]['descion']
+    return tree[now]['decision']
 
 ### Main ###
 # Load Data
@@ -179,9 +179,11 @@ for i in range(len(iris.data)):
         for j in range(3):
             if vote[j] > 1:
                 max_idx = j
-        prediction[i] = j
+        prediction[i] = max_idx
 # Calculate Error Rate
+error_list = []
 for i in range(len(iris.target)):
     if iris.target[i] != prediction[i]:
         error += 1
+        error_list.append(i)
 print('Error Rate:', error / len(iris.target))
