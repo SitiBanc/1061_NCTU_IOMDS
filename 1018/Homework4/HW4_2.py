@@ -8,7 +8,7 @@ Created on Thu Oct 19 16:36:02 2017
 from sklearn import datasets
 import numpy as np
 
-
+# K-NN Classifier
 def knn(feature, target, K):
     N = feature.shape[0]                # N筆資料
     L = np.zeros((N, 1))                # Label (data屬於哪一個class)
@@ -34,6 +34,13 @@ def knn(feature, target, K):
         
     return L
 
+# Building Confusion Matrix
+def buildCF(L, T):
+    t = len(set(T))
+    cf = np.zeros((t, t))
+    for i in range(len(T)):
+        cf[int(L[i, 0]), T[i]] += 1
+    return cf
 
 # Practice 5 : K-NN Classifier & Confusion Matrix
 
@@ -42,9 +49,8 @@ data = datasets.load_iris()
 feature = data.data
 target = data.target
 
-# K-NN Classifier
-L = knn(feature, target, 1)
-
-# Building Confusion Matrix
-t = len(set(target))
-CF = np.zeros((t, t))
+# Try K = 1~10
+cfs = [0] * 10
+for i in range(10):
+    L = knn(feature, target, i + 1)
+    cfs[i] = buildCF(L, target)
