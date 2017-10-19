@@ -8,6 +8,7 @@ Created on Wed Oct 18 20:53:35 2017
 import numpy as np
 import random
 from sklearn import datasets
+from scipy import stats
 
 
 def kmeans(sample, K, max_iter):
@@ -49,11 +50,20 @@ def kmeans(sample, K, max_iter):
 # Practice 3 : Iris Dataset Clustering Using K-Means
 data = datasets.load_iris()
 feature = data.data
-target = data.target
 center, label, wicd = kmeans(feature, 3, 1000)
 # Calculate Error Rate
 error = 0
 for i in range(len(label)):
-    if target[i] != label[i]:
-        error += 1
-print('Error Rate :', error / len(label))
+    if i < 50:
+        mode = stats.mode(label[:50])
+        if label[i] != mode[0][0]:
+            error += 1
+    elif i < 100:
+        mode = stats.mode(label[50:100])
+        if label[i] != mode[0][0]:
+            error += 1
+    else:
+        mode = stats.mode(label[100:])
+        if label[i] != mode[0][0]:
+            error += 1
+print('Error rate :', error / len(label))
