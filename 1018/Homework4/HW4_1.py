@@ -73,4 +73,4 @@ for i in range(len(wicds)):
     if wicds[i] < wicds[min_idx]:
         min_idx = i
 best_l = l[:, min_idx]
-print('Best wicd :', wicds[min_idx])
+print('Best wicd :', wicds[min_idx], 'for', n, 'times.')
