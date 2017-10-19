@@ -8,7 +8,6 @@ Created on Thu Oct 19 15:34:21 2017
 import numpy as np
 import random
 from sklearn import datasets
-from scipy import stats
 
 
 def kmeans(sample, K, max_iter):
