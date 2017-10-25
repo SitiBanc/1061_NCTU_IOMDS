@@ -72,7 +72,7 @@ for i in range(len(tradeday)):
         p2 = TAIEX[idx[idx2[0]], 1]                             # 停損點收盤價賣出
     elif len(idx2) == 0:                                        # 當日沒有停損但停利
         p2 = TAIEX[idx[idx3[0]], 1]                             # 停利點收盤價賣出
-    elif idx2[0] > idx3[0]:                                # 當日停利點先出現
+    elif idx2[0] > idx3[0]:                                     # 當日停利點先出現
         p2 = TAIEX[idx[idx3[0]], 1]                             # 停利點收盤價賣出
     else:                                                       # 當日停損點先出現
         p2 = TAIEX[idx[idx2[0]], 1]                             # 停損點收盤價賣出
