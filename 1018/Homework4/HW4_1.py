@@ -62,7 +62,7 @@ n = 10                                  # Repeat n times
 l = np.zeros((feature.shape[0], n))     # Store the n results of K-Means clustering labels
 wicds = [0] * n                         # Store the n results of wicd
 for i in range(n):
-    center, label, wicd = kmeans(feature, K, 1000)
+    center, label, wicd = kmeans(norm_feature, K, 1000)
     l[:, i] = label
     wicds[i] = wicd
 
