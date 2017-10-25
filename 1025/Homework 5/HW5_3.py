@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 25 21:46:31 2017
+Created on Wed Oct 25 23:33:46 2017
 
 @author: sitibanc
 """
@@ -15,7 +15,7 @@ TAIEX = df.values                                               # ndarray
 tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YYYYMMDD）
 tradeday.sort()
 
-# Strategy 2.0: 開盤買進一口，30點停損，30點停利，收盤平倉
+# Strategy 3.0: 開盤買進一口，n點停損，m點停利，收盤平倉，m >= n
 profit0 = np.zeros((len(tradeday),1))
 for i in range(len(tradeday)):
     date = tradeday[i]
@@ -38,7 +38,7 @@ for i in range(len(tradeday)):
         p2 = TAIEX[idx[idx2[0]], 1]                             # 停損點收盤價賣出
     profit0[i] = p2 - p1
 
-print('Strategy 2.0: 當日以開盤價買進一口，30點停損，30點停利，當日收盤價平倉\n逐日損益折線圖')
+print('Strategy 3.0: 當日以開盤價買進一口，n點停損，m點停利，當日收盤價平倉\n逐日損益折線圖')
 profit02 = np.cumsum(profit0)                                   # 逐日損益獲利
 plt.plot(profit02)                                              # 逐日損益折線圖
 plt.show()
@@ -55,7 +55,7 @@ print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
 
-# Strategy 2.1: 開盤賣出一口，30點停損，30點停利，收盤平倉
+# Strategy 3.1: 開盤賣出一口，n點停損，m點停利，收盤平倉，m >= n
 profit1 = np.zeros((len(tradeday),1))
 for i in range(len(tradeday)):
     date = tradeday[i]
@@ -78,7 +78,7 @@ for i in range(len(tradeday)):
         p2 = TAIEX[idx[idx2[0]], 1]                             # 停損點收盤價買回
     profit1[i] = p1 - p2
 
-print('Strategy 2.1: 當日以開盤價賣出一口，30點停損，30點停利，當日收盤價平倉\n每日獲利折線圖')
+print('Strategy 3.1: 當日以開盤價賣出一口，n點停損，m點停利，當日收盤價平倉\n每日獲利折線圖')
 profit12 = np.cumsum(profit1)                                   # 逐日累積損益
 plt.plot(profit12)                                              # 逐日損益折線圖
 plt.show()

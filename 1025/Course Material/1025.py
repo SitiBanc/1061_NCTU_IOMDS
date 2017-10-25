@@ -16,21 +16,21 @@ tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YY
 tradeday.sort()
 
 # Strategy 0.0: 每天第一分鐘開盤價買進，每天最後一分鐘收盤價賣出
-profit = np.zeros((len(tradeday),1))                            # 當日獲利 
+profit = np.zeros((len(tradeday),1))                            # 每日獲利 
 for i in range(len(tradeday)):
     date = tradeday[i]
     idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]           # 取出屬於當日的資料(回傳tuple)
     idx.sort()
     profit[i] = TAIEX[idx[-1], 1] - TAIEX[idx[0], 2]            # 最後收盤價 - 最初開盤價
-profit2 = np.cumsum(profit)
-plt.plot(profit2)                                               # 每日獲利折線圖
+profit2 = np.cumsum(profit)                                     # 累積獲利
+plt.plot(profit2)                                               # 累積獲利折線圖
 plt.show()
 
-ans1 = profit2[-1]                                              # 最後一天的獲利
-ans2 = np.sum(profit > 0) / len(profit)                         # 平均獲利（不計入虧損）
+ans1 = profit2[-1]                                              # 最終獲利
+ans2 = np.sum(profit > 0) / len(profit)                         # 勝率
 ans3 = np.mean(profit[profit > 0])                              # 獲利時的平均獲利
 ans4 = np.mean(profit[profit <= 0])                             # 虧損時的平均虧損
-plt.hist(profit, bins = 100)                                    # 每日獲利的分配圖（直方圖）
+plt.hist(profit, bins = 100)                                    # 每日獲利的分佈圖（直方圖）
 plt.show()
 
 # Strategy 1.0: 開盤買進一口，30點停損，收盤平倉
@@ -50,11 +50,11 @@ for i in range(len(tradeday)):
 profit2 = np.cumsum(profit)
 plt.plot(profit2)
 plt.show()
-ans1 = profit2[-1]                                              # 最後一天的獲利
-ans2 = np.sum(profit > 0) / len(profit)                         # 平均獲利（不計入虧損）
+ans1 = profit2[-1]                                              # 最終獲利
+ans2 = np.sum(profit > 0) / len(profit)                         # 勝率
 ans3 = np.mean(profit[profit > 0])                              # 獲利時的平均獲利
 ans4 = np.mean(profit[profit <= 0])                             # 虧損時的平均虧損
-plt.hist(profit, bins = 100)                                    # 每日獲利的分配圖
+plt.hist(profit, bins = 100)                                    # 每日獲利的分佈圖
 
 # Strategy 2.0: 開盤買進一口，30點停損，30點停利，收盤平倉
 for i in range(len(tradeday)):
@@ -81,8 +81,8 @@ for i in range(len(tradeday)):
 profit2 = np.cumsum(profit)
 plt.plot(profit2)
 plt.show()
-ans1 = profit2[-1]                                              # 最後一天的獲利
-ans2 = np.sum(profit > 0) / len(profit)                         # 平均獲利（不計入虧損）
+ans1 = profit2[-1]                                              # 最終獲利
+ans2 = np.sum(profit > 0) / len(profit)                         # 勝率
 ans3 = np.mean(profit[profit > 0])                              # 獲利時的平均獲利
 ans4 = np.mean(profit[profit <= 0])                             # 虧損時的平均虧損
-plt.hist(profit, bins = 100)                                    # 每日獲利的分配圖
+plt.hist(profit, bins = 100)                                    # 每日獲利的分佈圖
