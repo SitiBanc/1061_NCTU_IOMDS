@@ -22,7 +22,6 @@ tradeday.sort()
 # =============================================================================
 profit0 = np.zeros((len(tradeday), 1))
 tmp_profit0 = np.zeros((len(tradeday), 1))
-dbg = np.zeros((len(tradeday), 1))
 best0 = [0] * 3                                                 # [n, m, profit]
 count = 0
 for n in range(10, 110, 10):
@@ -49,21 +48,12 @@ for n in range(10, 110, 10):
             tmp_profit0[i] = p2 - p1
         # 選擇最好的m, n
         if best0[2] < np.sum(tmp_profit0):
-            profit0 = tmp_profit0
+            profit0 = np.hstack((profit0, tmp_profit0))
             best0[0] = n
             best0[1] = m
             best0[2] = np.sum(tmp_profit0)
-            dbg = np.hstack((dbg, tmp_profit0))
-            ans1 = len(profit0)                                 # 進場次數
-            ans2 = np.sum(profit0)                              # 總損益點數
-            ans3 = np.sum(profit0 > 0) / ans1 * 100             # 勝率
-            ans4 = np.mean(profit0[profit0 > 0])                # 獲利時的平均獲利點數
-            ans5 = np.mean(profit0[profit0 <= 0])               # 虧損時的平均虧損點數
-            print('數值更新：', n, m, np.sum(profit0), profit0[-3:])
-        else:
-            print(np.equal(profit0[-3:], tmp_profit0[-3:]))
-#        count += (n - 10) * 10 + (m - n) / 10 + 1
 
+profit0 = profit0[:, -1]
 print('Strategy 3.0: 當日以開盤價買進一口，', best0[0], '點停損，', best0[1], '點停利，當日收盤價平倉\n逐日損益折線圖')
 profit02 = np.cumsum(profit0)                                   # 逐日損益獲利
 plt.plot(profit02)                                              # 逐日損益折線圖
@@ -72,11 +62,11 @@ print('每日損益分佈圖')
 plt.hist(profit0, bins = 100)                                   # 每日損益的分佈圖（直方圖）
 plt.show()
 # 計算數據
-#ans1 = len(profit0)                                             # 進場次數
-#ans2 = profit02[-1]                                             # 總損益點數
-#ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
-#ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
-#ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
+ans1 = len(profit0)                                             # 進場次數
+ans2 = profit02[-1]                                             # 總損益點數
+ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
+ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
+ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
@@ -84,50 +74,53 @@ print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失�
 # =============================================================================
 # Strategy 3.1: 開盤賣出一口，n點停損，m點停利，收盤平倉，m >= n
 # =============================================================================
-#profit1 = np.zeros((len(tradeday),1))
-#tmp_profit1 = np.zeros((len(tradeday), 1))
-#best1 = [0] * 3
-#for n in range(10, 110, 10):
-#    for m in range(n , n + 100, 10):
-#        for i in range(len(tradeday)):
-#            date = tradeday[i]
-#            idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]
-#            idx.sort()
-#            p1 = TAIEX[idx[0], 2]
-#            # 設定停損點
-#            idx2 = np.nonzero(TAIEX[idx, 3] >= p1 + 30)[0]      # 最高價衝破停損點
-#            # 設定停利點
-#            idx3 = np.nonzero(TAIEX[idx, 4] <= p1 - 30)[0]      # 最低價跌破停利點
-#            if len(idx2) == 0 and len(idx3) == 0:               # 當日沒有觸及平損停利點
-#                p2 = TAIEX[idx[-1], 1]                          # 當日收盤價買回
-#            elif len(idx3) == 0:                                # 當日沒有停利但停損
-#                p2 = TAIEX[idx[idx2[0]], 1]                     # 停損點收盤價買回
-#            elif len(idx2) == 0:                                # 當日沒有停損但停利
-#                p2 = TAIEX[idx[idx3[0]], 1]                     # 停利點收盤價買回
-#            elif idx2[0] > idx3[0]:                             # 當日停利點先出現
-#                p2 = TAIEX[idx[idx3[0]], 1]                     # 停利點收盤價買回
-#            else:                                               # 當日停損點先出現
-#                p2 = TAIEX[idx[idx2[0]], 1]                     # 停損點收盤價買回
-#            tmp_profit1[i] = p1 - p2
-#        # 選擇最好的m, n
-#        if best1[2] < np.sum(tmp_profit1):
-#            best1[0] = n
-#            best1[1] = m
-#            best1[2] = np.sum(tmp_profit1)
-#            profit1 = tmp_profit1
-#
-#print('Strategy 3.1: 當日以開盤價賣出一口，', best1[0], '點停損，', best1[1], '點停利，當日收盤價平倉\n逐利損益折線圖')
-#profit12 = np.cumsum(profit1)                                   # 逐日累積損益
-#plt.plot(profit12)                                              # 逐日損益折線圖
-#plt.show()
-#print('每日損益分佈圖')
-#plt.hist(profit1, bins = 100)                                   # 每日損益的分佈圖
-#plt.show()
-## 計算數據
-#ans1 = len(profit1)                                             # 進場次數
-#ans2 = profit12[-1]                                             # 總損益點數
-#ans3 = np.sum(profit1 > 0) / ans1 * 100                         # 勝率
-#ans4 = np.mean(profit1[profit1 > 0])                            # 獲利時的平均獲利點數
-#ans5 = np.mean(profit1[profit1 <= 0])                           # 虧損時的平均虧損點數
-#print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
-#print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5)
+profit1 = np.zeros((len(tradeday),1))
+tmp_profit1 = np.zeros((len(tradeday), 1))
+best1 = [0] * 3
+for n in range(10, 110, 10):
+    for m in range(n , n + 100, 10):
+        for i in range(len(tradeday)):
+            date = tradeday[i]
+            idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]
+            idx.sort()
+            p1 = TAIEX[idx[0], 2]
+            # 設定停損點
+            idx2 = np.nonzero(TAIEX[idx, 3] >= p1 + n)[0]      # 最高價衝破停損點
+            # 設定停利點
+            idx3 = np.nonzero(TAIEX[idx, 4] <= p1 - m)[0]      # 最低價跌破停利點
+            if len(idx2) == 0 and len(idx3) == 0:               # 當日沒有觸及平損停利點
+                p2 = TAIEX[idx[-1], 1]                          # 當日收盤價買回
+            elif len(idx3) == 0:                                # 當日沒有停利但停損
+                p2 = TAIEX[idx[idx2[0]], 1]                     # 停損點收盤價買回
+            elif len(idx2) == 0:                                # 當日沒有停損但停利
+                p2 = TAIEX[idx[idx3[0]], 1]                     # 停利點收盤價買回
+            elif idx2[0] > idx3[0]:                             # 當日停利點先出現
+                p2 = TAIEX[idx[idx3[0]], 1]                     # 停利點收盤價買回
+            else:                                               # 當日停損點先出現
+                p2 = TAIEX[idx[idx2[0]], 1]                     # 停損點收盤價買回
+            tmp_profit1[i] = p1 - p2
+        print(n, m, np.sum(tmp_profit1))
+        # 選擇最好的m, n
+        if best1[2] < np.sum(tmp_profit1):
+            best1[0] = n
+            best1[1] = m
+            best1[2] = np.sum(tmp_profit1)
+            profit1 = np.hstack((profit1, tmp_profit1))
+            print(best1[0], best1[1], best1[2])
+
+profit1 = profit1[:, -1]
+print('Strategy 3.1: 當日以開盤價賣出一口，', best1[0], '點停損，', best1[1], '點停利，當日收盤價平倉\n逐利損益折線圖')
+profit12 = np.cumsum(profit1)                                   # 逐日累積損益
+plt.plot(profit12)                                              # 逐日損益折線圖
+plt.show()
+print('每日損益分佈圖')
+plt.hist(profit1, bins = 100)                                   # 每日損益的分佈圖
+plt.show()
+# 計算數據
+ans1 = len(profit1)                                             # 進場次數
+ans2 = profit12[-1]                                             # 總損益點數
+ans3 = np.sum(profit1 > 0) / ans1 * 100                         # 勝率
+ans4 = np.mean(profit1[profit1 > 0])                            # 獲利時的平均獲利點數
+ans5 = np.mean(profit1[profit1 <= 0])                           # 虧損時的平均虧損點數
+print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
+print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5)
