@@ -22,8 +22,9 @@ tradeday.sort()
 # =============================================================================
 profit0 = np.zeros((len(tradeday), 1))
 tmp_profit0 = np.zeros((len(tradeday), 1))
+dbg = np.zeros((len(tradeday), 1))
 best0 = [0] * 3                                                 # [n, m, profit]
-best = profit0
+count = 0
 for n in range(10, 110, 10):
     for m in range(n , n + 100, 10):
         for i in range(len(tradeday)):
@@ -48,12 +49,20 @@ for n in range(10, 110, 10):
             tmp_profit0[i] = p2 - p1
         # 選擇最好的m, n
         if best0[2] < np.sum(tmp_profit0):
+            profit0 = tmp_profit0
             best0[0] = n
             best0[1] = m
             best0[2] = np.sum(tmp_profit0)
-            profit0 = tmp_profit0
-            best = tmp_profit0
-            print('數值更新：', n, m, np.sum(profit0))
+            dbg = np.hstack((dbg, tmp_profit0))
+            ans1 = len(profit0)                                 # 進場次數
+            ans2 = np.sum(profit0)                              # 總損益點數
+            ans3 = np.sum(profit0 > 0) / ans1 * 100             # 勝率
+            ans4 = np.mean(profit0[profit0 > 0])                # 獲利時的平均獲利點數
+            ans5 = np.mean(profit0[profit0 <= 0])               # 虧損時的平均虧損點數
+            print('數值更新：', n, m, np.sum(profit0), profit0[-3:])
+        else:
+            print(np.equal(profit0[-3:], tmp_profit0[-3:]))
+#        count += (n - 10) * 10 + (m - n) / 10 + 1
 
 print('Strategy 3.0: 當日以開盤價買進一口，', best0[0], '點停損，', best0[1], '點停利，當日收盤價平倉\n逐日損益折線圖')
 profit02 = np.cumsum(profit0)                                   # 逐日損益獲利
@@ -63,11 +72,11 @@ print('每日損益分佈圖')
 plt.hist(profit0, bins = 100)                                   # 每日損益的分佈圖（直方圖）
 plt.show()
 # 計算數據
-ans1 = len(profit0)                                             # 進場次數
-ans2 = profit02[-1]                                             # 總損益點數
-ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
-ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
+#ans1 = len(profit0)                                             # 進場次數
+#ans2 = profit02[-1]                                             # 總損益點數
+#ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
+#ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
+#ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
