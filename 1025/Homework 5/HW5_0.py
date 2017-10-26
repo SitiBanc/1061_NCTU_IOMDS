@@ -9,13 +9,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# =============================================================================
 # Read CSV
+# =============================================================================
 df = pd.read_csv('./TXF20112015.csv', sep=',', header = None)   # dataframe (time, close, open, high, low, volume)
 TAIEX = df.values                                               # ndarray
 tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YYYYMMDD）
 tradeday.sort()
 
+# =============================================================================
 # Strategy 0.0: 每天第一分鐘開盤價買進，每天最後一分鐘收盤價賣出
+# =============================================================================
 profit0 = np.zeros((len(tradeday),1))                           # 當日損益 
 for i in range(len(tradeday)):
     date = tradeday[i]
@@ -40,7 +44,9 @@ print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
 
+# =============================================================================
 # Strategy 0.1: 每天第一分鐘以開盤價空一口台指期，每天最後一分鐘以收盤價買回
+# =============================================================================
 profit1 = np.zeros((len(tradeday),1))                           # 當日損益 
 for i in range(len(tradeday)):
     date = tradeday[i]
