@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # Read CSV
 # =============================================================================
-df = pd.read_csv('./TXF20112015.csv', sep=',', header = None)   # dataframe (time, close, open, high, low, volume)
+df = pd.read_csv('TXF20112015.csv', sep=',', header = None)     # dataframe (time, close, open, high, low, volume)
 TAIEX = df.values                                               # ndarray
 tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YYYYMMDD）
 tradeday.sort()
@@ -25,7 +25,7 @@ tmp_profit0 = np.zeros((len(tradeday), 1))
 best0 = [0] * 3                                                 # [n, m, profit]
 count = 0
 for n in range(10, 110, 10):
-    for m in range(n , n + 100, 10):
+    for m in range(n , 110, 10):
         for i in range(len(tradeday)):
             date = tradeday[i]
             idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]
@@ -70,7 +70,6 @@ ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的�
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
-
 # =============================================================================
 # Strategy 3.1: 開盤賣出一口，n點停損，m點停利，收盤平倉，m >= n
 # =============================================================================
@@ -78,7 +77,7 @@ profit1 = np.zeros((len(tradeday),1))
 tmp_profit1 = np.zeros((len(tradeday), 1))
 best1 = [0] * 3
 for n in range(10, 110, 10):
-    for m in range(n , n + 100, 10):
+    for m in range(n , 110, 10):
         for i in range(len(tradeday)):
             date = tradeday[i]
             idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]
@@ -99,14 +98,12 @@ for n in range(10, 110, 10):
             else:                                               # 當日停損點先出現
                 p2 = TAIEX[idx[idx2[0]], 1]                     # 停損點收盤價買回
             tmp_profit1[i] = p1 - p2
-        print(n, m, np.sum(tmp_profit1))
         # 選擇最好的m, n
         if best1[2] < np.sum(tmp_profit1):
             best1[0] = n
             best1[1] = m
             best1[2] = np.sum(tmp_profit1)
             profit1 = np.hstack((profit1, tmp_profit1))
-            print(best1[0], best1[1], best1[2])
 
 profit1 = profit1[:, -1]
 print('Strategy 3.1: 當日以開盤價賣出一口，', best1[0], '點停損，', best1[1], '點停利，當日收盤價平倉\n逐利損益折線圖')

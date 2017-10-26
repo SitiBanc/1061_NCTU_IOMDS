@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # Read CSV
 # =============================================================================
-df = pd.read_csv('./TXF20112015.csv', sep=',', header = None)   # dataframe (time, close, open, high, low, volume)
+df = pd.read_csv('TXF20112015.csv', sep=',', header = None)     # dataframe (time, close, open, high, low, volume)
 TAIEX = df.values                                               # ndarray
 tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YYYYMMDD）
 tradeday.sort()
@@ -46,9 +46,11 @@ for i in range(len(tradeday)):
     elif idx2[0] > idx3[0]:                                     # 當日賣訊先出現
         p2 = TAIEX[idx[idx3[0]], 1]                             # 第一個賣點收盤價賣出
         p1 = TAIEX[idx[-1], 1]                                  # 當日收盤價買回
+        count += 1
     else:                                                       # 當日買訊先出現
         p1 = TAIEX[idx[idx2[0]], 1]                             # 第一個買點收盤價買進
         p2 = TAIEX[idx[-1], 1]                                  # 當日收盤價賣出
+        count += 1
     profit0[i] = p2 - p1
 
 print('Strategy 4: 開盤後，分鐘最高價高於開盤30點（買訊）先出現，則買進一口，收盤平倉；分鐘最低價低於開盤30點（賣訊）先出現，則放空一口，收盤平倉\n逐日損益折線圖')
@@ -63,6 +65,6 @@ ans1 = count                                                    # 進場次數
 ans2 = profit02[-1]                                             # 總損益點數
 ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
 ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
+ans5 = np.mean(profit0[profit0 < 0])                            # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')

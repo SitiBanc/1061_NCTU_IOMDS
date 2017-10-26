@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # Read CSV
 # =============================================================================
-df = pd.read_csv('./TXF20112015.csv', sep=',', header = None)   # dataframe (time, close, open, high, low, volume)
+df = pd.read_csv('TXF20112015.csv', sep=',', header = None)     # dataframe (time, close, open, high, low, volume)
 TAIEX = df.values                                               # ndarray
 tradeday = list(set(TAIEX[:, 0] // 10000))                      # 交易日（YYYYMMDD）
 tradeday.sort()
@@ -39,10 +39,9 @@ ans1 = len(profit0)                                             # 進場次數
 ans2 = profit02[-1]                                             # 總損益點數
 ans3 = np.sum(profit0 > 0) / len(profit0) * 100                 # 勝率
 ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit0[profit0 <= 0])                           # 虧損時的平均虧損點數
+ans5 = np.mean(profit0[profit0 < 0])                            # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
-
 
 # =============================================================================
 # Strategy 0.1: 每天第一分鐘以開盤價空一口台指期，每天最後一分鐘以收盤價買回
@@ -66,6 +65,6 @@ ans1 = len(profit1)                                             # 進場次數
 ans2 = profit12[-1]                                             # 總損益點數
 ans3 = np.sum(profit1 > 0) / len(profit1) * 100                 # 勝率
 ans4 = np.mean(profit1[profit1 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit1[profit1 <= 0])                           # 虧損時的平均虧損點數
+ans5 = np.mean(profit1[profit1 < 0])                            # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5)
