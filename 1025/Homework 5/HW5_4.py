@@ -66,5 +66,7 @@ ans2 = profit02[-1]                                             # 總損益點�
 ans3 = np.sum(profit0 > 0) / ans1 * 100                         # 勝率
 ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
 ans5 = np.mean(profit0[profit0 < 0])                            # 虧損時的平均虧損點數
+zero_profit = len(profit0[profit0 <= 0]) - (len(profit0) - ans1)# 進場沒有贏的日數（profit為0 - 沒有進場）
+ans5 = np.sum(profit0[profit0 < 0]) / zero_profit               # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')

@@ -46,7 +46,7 @@ ans1 = len(profit0)                                             # 進場次數
 ans2 = profit02[-1]                                             # 總損益點數
 ans3 = np.sum(profit0 > 0) / len(profit0) * 100                 # 勝率
 ans4 = np.mean(profit0[profit0 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit0[profit0 < 0])                            # 虧損時的平均虧損點數
+ans5 = np.mean(profit0[profit0 <= 0])                            # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5, '\n')
 
@@ -67,7 +67,7 @@ for i in range(len(tradeday)):
         p2 = TAIEX[idx[idx2[0]], 1]                             # 停損點收盤價賣出
     profit1[i] = p1 - p2
 # 畫圖
-print('Strategy 1.0: 每日第一分鐘開盤賣出一口，30點停損，每天最後一分鐘以收盤價平倉\n逐日累積損益折線圖')
+print('Strategy 1.1: 每日第一分鐘開盤賣出一口，30點停損，每天最後一分鐘以收盤價平倉\n逐日累積損益折線圖')
 profit12 = np.cumsum(profit1)                                   # 逐日累積損益
 plt.plot(profit12)                                              # 逐日損益折線圖
 plt.show()
@@ -79,6 +79,6 @@ ans1 = len(profit1)                                             # 進場次數
 ans2 = profit12[-1]                                             # 總損益點數
 ans3 = np.sum(profit1 > 0) / len(profit1) * 100                 # 勝率
 ans4 = np.mean(profit1[profit1 > 0])                            # 獲利時的平均獲利點數
-ans5 = np.mean(profit1[profit1 < 0])                            # 虧損時的平均虧損點數
+ans5 = np.mean(profit1[profit1 <= 0])                            # 虧損時的平均虧損點數
 print('進場次數：', ans1, '\n總損益點數：', ans2, '\n勝率：', ans3, '%')
 print('賺錢時平均每次獲利點數', ans4, '\n輸錢時平均每次損失點數：', ans5)
