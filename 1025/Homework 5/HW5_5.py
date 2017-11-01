@@ -26,22 +26,23 @@ for i in range(len(tradeday)):
     date = tradeday[i]
     idx = np.nonzero(TAIEX[:, 0] // 10000 == date)[0]
     idx.sort()
-    long_signal = TAIEX[idx[0], 2] + 30                         # 買訊
-    short_signal = TAIEX[idx[0], 2] - 30                        # 賣訊
+    openning = TAIEX[idx[0], 2]                                 # 當日開盤價
+    long_signal = openning + 30                                 # 買訊
+    short_signal = openning - 30                                # 賣訊
     # 符合買訊的時間點
     idx2 = np.nonzero(TAIEX[idx, 3] >= long_signal)[0]          # 買點
     # 設定買訊停損點
     if len(idx2) > 0:
         # 當日交易中在第一個買訊之後（含買訊，故index = 0不能用在停損）的資料
         tmp2 = TAIEX[idx[idx2[0]]:idx[-1], :]
-        idx2_stop = np.nonzero(tmp2[:, 4] <= long_signal)[0]
+        idx2_stop = np.nonzero(tmp2[:, 4] <= openning)[0]
     # 符合賣訊的時間點
     idx3 = np.nonzero(TAIEX[idx, 4] <= short_signal)[0]         # 賣點
     # 設定賣訊停損點
     if len(idx3) > 0:
         # 當日交易中在第一個賣訊之後（含賣訊，故index = 0不能用在停損）的資料
         tmp3 = TAIEX[idx[idx3[0]]:idx[-1], :]
-        idx3_stop = np.nonzero(tmp3[:, 3] >= short_signal)[0]
+        idx3_stop = np.nonzero(tmp3[:, 3] >= openning)[0]
         
     if len(idx2) == 0 and len(idx3) == 0:                       # 當日沒有觸及買賣點（不進場）
         p1 = 0
