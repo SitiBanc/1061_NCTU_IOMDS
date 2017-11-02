@@ -77,17 +77,17 @@ def BPNNtest(feature, model):
 def calROC(network, p, n, hn, lr, t):
     pscore = BPNNtest(p, network)
     nscore = BPNNtest(n, network)
-    # Calculate TPR & FNR with different thresholds
+    # Calculate TPR & FPR with different thresholds
     ROC = np.zeros((100, 2))
     for t in range(100):
-        # Calculate True Postive Rate & False Negative Rate
+        # Calculate True Postive Rate & False Positive Rate
         threshold = (t + 1) / 100
         for i in range(len(pscore)):
             if pscore[i, 0] >= threshold:
                 ROC[t, 0] += 1 / len(pscore)                # True Positive / Actual Positive
         for i in range(len(nscore)):
-            if nscore[i, 0] < threshold:
-                ROC[t, 1] += 1 / len(nscore)                # False Negative / Actual Negative
+            if nscore[i, 0] >= threshold:
+                ROC[t, 1] += 1 / len(nscore)                # False Positive / Actual Negative
     return ROC
 
 
@@ -99,11 +99,13 @@ testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/
 
 # Test hidden nodes number
 test_hn = [20, 30, 40]
+lr = 0.01
+it = 10
 for i in range(len(test_hn)):
-    network = BPNNtrain(trainface, trainnonface, 20, 0.01, 10)
-    ROC = calROC(network, trainface, trainnonface, 20, 0.01, 10)
-    plt.plot(ROC[:, 0], ROC[:, 1])
-    ROC = calROC(network, testface, testnonface, 20, 0.01, 10)
-    plt.plot(ROC[:, 0], ROC[:, 1])
-    print('Hidden Nodes Number:', hn[i], '\nLearning Rate:', lr, '\nIteration Times:', it)
+    network = BPNNtrain(trainface, trainnonface, test_hn[i], lr, it)
+    ROC = calROC(network, trainface, trainnonface, test_hn[i], lr, it)
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    ROC = calROC(network, testface, testnonface, test_hn[i], lr, it)
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    print('\nTest Result:\nHidden Nodes Number:', test_hn[i], '\nLearning Rate:', lr, '\nIteration Times:', it)
     plt.show()
