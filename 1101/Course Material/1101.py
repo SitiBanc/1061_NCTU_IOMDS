@@ -22,8 +22,8 @@ def loadIMG(file_path):
     return x
 
 
-def BPNN(pf, nf, hn, lr, iteration):
-    # postive feature, negative featuew, hidden nodes number, learning rate, learning times
+def BPNNtrain(pf, nf, hn, lr, iteration):
+    # postive feature, negative featue, hidden nodes number, learning rate, learning times
     pn = pf.shape[0]
     nn = nf.shape[0]
     fn = pf.shape[1]                                    # feature number
@@ -43,13 +43,12 @@ def BPNN(pf, nf, hn, lr, iteration):
                 ho[j] = 1 / (1 + math.exp(-ho[j]))      # sigmoid function (constraint value to be within 0~1)
             hs = np.append(ho, 1)                       # hidden layer signal (adding constant) <-- actual output
             out = hs.dot(WO)                            # matrix multiplication (multiply weights)
+            out = 1 / (1 + math.exp(-out))
             # Gradient descent
-            dk = out * (1 - out)(target[s[i]] - out)    # delta value of output node
-            dh = np.zeros((hn, 1))                      # delta value of hidden nodes
-            for j in range(hn):
-                dh[j] = ho[j] * (1 - ho[j]) * WO[j] *dk
+            dk = out * (1 - out) * (target[s[i]] - out) # delta value of output node
+            dh = ho * (1 - ho) * WO[0:hn, 0] * dk       # delta value of hidden nodes
             # Update weights
-            WO = WO + lr * dk * hs
+            WO[:, 0] = WO[:, 0] + lr * dk * hs
             for j in range(hn):
                 WI[:, j] = WI[:, j] + lr * dh[j] * ins
     model['WI'] = WI
@@ -59,17 +58,40 @@ def BPNN(pf, nf, hn, lr, iteration):
 
 def BPNNtest(feature, model):
     sn = feature.shape[0]                               # sample number
-    WI = model['WI']
-    WO = model['WO']
-    ins = np.append(feature[i, :], 1)
-    ho = ins.dot(WI)
+    WI = model['WI']                                    # input to hidden layer weights
+    WO = model['WO']                                    # hidden to output layer weights
+    hn = WI.shape[1]                                    # hidden nodes number
+    out = np.zeros((sn, 1))                             # model predict value
     for i in range(sn):
-        ins = np.append(feature[i, :], 1)
+        ins = np.append(feature[i, :], 1)               # adding constant
+        ho = ins.dot(WI)                                # multiply input-to-hidden weights
+        for j in range(hn):
+            ho[j] = 1 / (1 + math.exp(-ho[j]))          # apply sigmoid function
+        hs = np.append(ho, 1)                           # adding constant
+        out[i] = hs.dot(WO)                             # multiply hidden-to-output weights
+        out[i] = 1 / (1 + math.exp(-out[i]))            # apply sigmoid function
+    return out
+
 
 # Load Data
-trainface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/face')
-trainnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/non-face')
-testface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/face')
-testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/non-face')
+trainface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/face') / 255
+trainnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/non-face') / 255
+testface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/face') / 255
+testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/non-face') / 255
 
-network = BPNN(trainface, trainnonface, 20, 0.2, 10)
+# Test hidden nodes number
+network = BPNNtrain(trainface, trainnonface, 20, 0.01, 10)
+pscore = BPNNtest(trainface, network)
+nscore = BPNNtest(trainnonface, network)
+# Calculate True-Positive Rate & False-Negative Rate
+tpr = 0
+fnr = 0
+threshold = 0.6
+for i in range(len(pscore)):
+    if pscore[i, 0] >= threshold:
+        tpr += 1 / len(pscore)                          # True Positive / Actual Positive
+for i in range(len(nscore)):
+    if nscore[i, 0] < threshold:
+        fnr += 1 / len(nscore)                          # False Negative / Actual Negative
+print('True-Postive Rate:', tpr)
+print('False-Negative Rate:', fnr)

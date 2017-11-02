@@ -17,34 +17,19 @@ from PIL import Image
 import numpy as np
 import math
 import random
-os.chdir('C:\\Users\\USER\\Desktop\\20171101\\CBCL\\train\\face')
-filelist = os.listdir()
-x = np.zeros((len(filelist),19*19))
-for i in range(len(filelist)):
-    IMG = Image.open(filelist[i])
-    x[i,:]=np.array(IMG.getdata())
-trainface = x.copy()
-os.chdir('C:\\Users\\USER\\Desktop\\20171101\\CBCL\\train\\non-face')
-filelist = os.listdir()
-x = np.zeros((len(filelist),19*19))
-for i in range(len(filelist)):
-    IMG = Image.open(filelist[i])
-    x[i,:]=np.array(IMG.getdata())
-trainnonface = x.copy()
-os.chdir('C:\\Users\\USER\\Desktop\\20171101\\CBCL\\test\\face')
-filelist = os.listdir()
-x = np.zeros((len(filelist),19*19))
-for i in range(len(filelist)):
-    IMG = Image.open(filelist[i])
-    x[i,:]=np.array(IMG.getdata())
-testface = x.copy()
-os.chdir('C:\\Users\\USER\\Desktop\\20171101\\CBCL\\test\\non-face')
-filelist = os.listdir()
-x = np.zeros((len(filelist),19*19))
-for i in range(len(filelist)):
-    IMG = Image.open(filelist[i])
-    x[i,:]=np.array(IMG.getdata())
-testnonface = x.copy()
+
+
+def loadIMG(file_path):
+    # Load File
+    os.chdir(file_path)                                 # Change directory
+    filelist = os.listdir()                             # 檔案位置list
+    x = np.zeros((len(filelist), 19 * 19))              # 準備檔案數 * 361 pixels
+    # Read Image
+    for i in range(len(filelist)):
+        IMG = Image.open(filelist[i])
+        x[i, :] = np.array(IMG.getdata())               # 將IMG中19*19的資料拉成1維陣列
+    return x
+
 
 def BPNNtrain(pf,nf,hn,lr,iteration):
     pn = pf.shape[0]
@@ -90,6 +75,12 @@ def BPNNtest(feature,model):
         out[i] = hs.dot(WO)
         out[i] = 1/(1+math.exp(-out[i]))
     return out
+
+# Load Data
+trainface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/face')
+trainnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/train/non-face')
+testface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/face')
+testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/non-face')
 
 network = BPNNtrain(trainface/255,trainnonface/255,20,0.01,10)
 pscore = BPNNtest(trainface/255,network)
