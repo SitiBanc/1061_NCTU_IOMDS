@@ -98,14 +98,40 @@ testface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/tes
 testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/non-face') / 255
 
 # Test hidden nodes number
-test_hn = [20, 30, 40]
-lr = 0.01
-it = 10
-for i in range(len(test_hn)):
-    network = BPNNtrain(trainface, trainnonface, test_hn[i], lr, it)
-    ROC = calROC(network, trainface, trainnonface, test_hn[i], lr, it)
+hn = [20, 30, 40]
+lr = [0.01] * 3
+it = [10] * 3
+for i in range(len(hn)):
+    network = BPNNtrain(trainface, trainnonface, hn[i], lr[i], it[i])
+    ROC = calROC(network, trainface, trainnonface, hn[i], lr[i], it[i])
     plt.plot(ROC[:, 1], ROC[:, 0])
-    ROC = calROC(network, testface, testnonface, test_hn[i], lr, it)
+    ROC = calROC(network, testface, testnonface, hn[i], lr[i], it[i])
     plt.plot(ROC[:, 1], ROC[:, 0])
-    print('\nTest Result:\nHidden Nodes Number:', test_hn[i], '\nLearning Rate:', lr, '\nIteration Times:', it)
+    print('\nTest Result:\nHidden Nodes Number:', hn[i], '\nLearning Rate:', lr[i], '\nIteration Times:', it[i])
+    plt.show()
+
+# Test learning rate
+hn = [20] * 3
+lr = [0.01, 0.1, 0.2]
+it = [10] * 3
+for i in range(len(hn)):
+    network = BPNNtrain(trainface, trainnonface, hn[i], lr[i], it[i])
+    ROC = calROC(network, trainface, trainnonface, hn[i], lr[i], it[i])
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    ROC = calROC(network, testface, testnonface, hn[i], lr[i], it[i])
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    print('\nTest Result:\nHidden Nodes Number:', hn[i], '\nLearning Rate:', lr[i], '\nIteration Times:', it[i])
+    plt.show()
+
+# Test Iteration Times
+hn = [20] * 3
+lr = [0.01] * 3
+it = [10, 20, 30]
+for i in range(len(hn)):
+    network = BPNNtrain(trainface, trainnonface, hn[i], lr[i], it[i])
+    ROC = calROC(network, trainface, trainnonface, hn[i], lr[i], it[i])
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    ROC = calROC(network, testface, testnonface, hn[i], lr[i], it[i])
+    plt.plot(ROC[:, 1], ROC[:, 0])
+    print('\nTest Result:\nHidden Nodes Number:', hn[i], '\nLearning Rate:', lr[i], '\nIteration Times:', it[i])
     plt.show()
