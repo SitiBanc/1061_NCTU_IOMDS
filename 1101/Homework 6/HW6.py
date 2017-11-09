@@ -97,6 +97,9 @@ trainnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL
 testface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/face') / 255
 testnonface = loadIMG('/home/sitibanc/1061_NCTU_IOMDS/1101/Course Material/CBCL/test/non-face') / 255
 
+plt.xlabel('FPR')
+plt.ylabel('TPR')
+
 # Test hidden nodes number
 hn = [20, 30, 40]
 lr = [0.01] * 3
