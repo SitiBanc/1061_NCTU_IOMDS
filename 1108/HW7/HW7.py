@@ -60,8 +60,8 @@ I2.show()
 # HW7-3: Sharp Filter（銳化）    <-- 兩個標準差不同的Gaussian相減
 # =============================================================================
 # Generate Mask
-#sig1 = gen2DGaussian(1.0, 0.0, 5, 5)
-#sig2 = gen2DGaussian(2.0, 0.0, 5, 5)
+#sig1 = gen2DGaussian(1.0, 0.0, 3, 3)
+#sig2 = gen2DGaussian(2.0, 0.0, 3, 3)
 #M3 = sig1 - sig2
 #M3 = M3 / M3.sum()
 # Another Mask
@@ -76,15 +76,27 @@ I3.show()
 # HW7-4: Sobel Filter（邊界強化、類似素描風格）
 # =============================================================================
 # Gray-scale image
-I0 = Image.open('sample.jpg').convert('LA')
+I0 = Image.open('kop.jpg').convert('L')
 data0 = np.asarray(I0)
 # Generate Mask
 sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
 sobel_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
 M4 = sobel_x ** 2 + sobel_y ** 2
 # Apply Mask
-for h in range(M4.shape[0]):
-    for w in range(M4.shape[1]):
-        
-I4 = Image.fromarray(masked4)
+masked4 = signal.convolve2d(data0, M4, mode = 'same', boundary = 'symm')
+#i = 0
+#tmp = [0] * masked4.shape[0] * masked4.shape[1]    # store original value
+#for h in range(masked4.shape[0]):
+#    for w in range(masked4.shape[1]):
+#         tmp[i] = masked4[h, w]
+#         i += 1
+#tmp.sort()
+#idx = int(len(tmp) * 0.2)
+#for h in range(masked4.shape[0]):
+#    for w in range(masked4.shape[1]):
+#         if masked4[h, w] >= tmp[idx]:
+#             masked4[h, w] = 255
+#         else:
+#             masked4[h, w] = 0
+I4 = Image.fromarray(masked4, 'L')
 I4.show()
