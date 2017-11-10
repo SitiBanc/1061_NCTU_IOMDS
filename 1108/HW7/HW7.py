@@ -76,27 +76,25 @@ I3.show()
 # HW7-4: Sobel Filter（邊界強化、類似素描風格）
 # =============================================================================
 # Gray-scale image
-I0 = Image.open('kop.jpg').convert('L')
+I0 = I.convert('L')
 data0 = np.asarray(I0)
 # Generate Mask
 sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
 sobel_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-M4 = sobel_x ** 2 + sobel_y ** 2
 # Apply Mask
-masked4 = signal.convolve2d(data0, M4, mode = 'same', boundary = 'symm')
-#i = 0
-#tmp = [0] * masked4.shape[0] * masked4.shape[1]    # store original value
-#for h in range(masked4.shape[0]):
-#    for w in range(masked4.shape[1]):
-#         tmp[i] = masked4[h, w]
-#         i += 1
-#tmp.sort()
-#idx = int(len(tmp) * 0.2)
-#for h in range(masked4.shape[0]):
-#    for w in range(masked4.shape[1]):
-#         if masked4[h, w] >= tmp[idx]:
-#             masked4[h, w] = 255
-#         else:
-#             masked4[h, w] = 0
+Ix = signal.convolve2d(data0, sobel_x, mode = 'same', boundary = 'symm')
+Iy = signal.convolve2d(data0, sobel_y, mode = 'same', boundary = 'symm')
+masked4 = Ix ** 2 + Iy ** 2
+# Adjust Color
+tmp = masked4.flatten()
+tmp[::-1].sort()    # sorting in descending order
+n = 0.2
+idx = int(len(tmp) * n)
+for h in range(masked4.shape[0]):
+    for w in range(masked4.shape[1]):
+         if masked4[h, w] >= tmp[idx]:
+             masked4[h, w] = 255
+         else:
+             masked4[h, w] = 0
 I4 = Image.fromarray(masked4, 'L')
 I4.show()
