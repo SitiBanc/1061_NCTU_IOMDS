@@ -43,7 +43,7 @@ M1 = gen2DGaussian(1.0, 0.0, 10, 10)
 M1 = M1 / M1.sum()
 # Apply Mask
 masked1 = applyMask(M1, data)
-I1 = Image.fromarray(masked1, 'RGB')
+I1 = Image.fromarray(masked1.astype('uint8'), 'RGB')
 I1.show()
 
 # =============================================================================
@@ -53,7 +53,7 @@ M2 = np.ones((20, 1))
 M2 = M2 / M2.sum()
 # Apply Mask
 masked2 = applyMask(M2, data)
-I2 = Image.fromarray(masked2, 'RGB')
+I2 = Image.fromarray(masked2.astype('uint8'), 'RGB')
 I2.show()
 
 # =============================================================================
@@ -69,7 +69,7 @@ M3 = np.array([[-1, -1, -1], [-1, 16, -1], [-1, -1, -1]])
 M3 = M3 / 8
 # Apply Mask
 masked3 = applyMask(M3, data)
-I3 = Image.fromarray(masked3, 'RGB')
+I3 = Image.fromarray(masked3.astype('uint8'), 'RGB')
 I3.show()
 
 # =============================================================================
@@ -96,5 +96,5 @@ for h in range(masked4.shape[0]):
              masked4[h, w] = 255
          else:
              masked4[h, w] = 0
-I4 = Image.fromarray(masked4, 'L')
+I4 = Image.fromarray(masked4.astype('uint8'), 'L')
 I4.show()
