@@ -93,8 +93,8 @@ idx = int(len(tmp) * n)
 for h in range(masked4.shape[0]):
     for w in range(masked4.shape[1]):
          if masked4[h, w] >= tmp[idx]:
-             masked4[h, w] = 255
-         else:
              masked4[h, w] = 0
+         else:
+             masked4[h, w] = 255
 I4 = Image.fromarray(masked4.astype('uint8'), 'L')
 I4.show()
