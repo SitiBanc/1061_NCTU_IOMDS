@@ -6,7 +6,9 @@ Created on Wed Nov 22 13:07:44 2017
 @author: sitibanc
 """
 import numpy as np
+from matplotlib import cm
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 # Linear Regression
@@ -18,33 +20,64 @@ def F1(t):
 def F2(t, A, B, C, D):
     return A * (t ** B) + C * np.cos(D * t) + np.random.normal(0, 1, t.shape)
 
+
 # Energy Function
-def E(b2, A2, A, B, C, D):
-    return np.sum(abs(F2(A2,A,B,C,D)-b2))
+def E(targets, t, A, B, C, D):
+    return np.sum(abs(F2(t, A, B, C, D) - targets))
 
 
 # =============================================================================
 # Experiment 1: Fix A, B, C, try different D
 # =============================================================================
-#n = 1000
-#b2 = np.zeros((n, 1))
-#A2 = np.zeros((n, 1))
-#for i in range(n):
-#    t = np.random.random() * 100
-#    A2[i] = t
-#    b2[i] = F2(t, 0.6, 1.2, 100, 0.4)
-#Ds = np.array(range(-511, 512)) / 100
-#exp1 = np.zeros((len(Ds), 2))
-#for i in range(len(Ds)):
-#    exp1[i, 0] = Ds[i]
-#    exp1[i, 1] = E(b2, A2, 0.6, 1.2, 100, exp1[i, 0])[0]
-#plt.plot(exp1[:,0], exp1[:, 1])
-#plt.show()
+n = 1000
+# True answers (targets) of random t
+targets = np.zeros((n, 1))
+# Random t (data)
+t = np.random.random((n, 1)) * 100
+# Calculate true ans
+for i in range(n):
+    targets[i] = F2(t[i], 0.6, 1.2, 100, 0.4)
+# Try different Ds
+Ds = np.array(range(-511, 512)) / 100
+# D & correspond Energy
+exp1 = np.zeros((len(Ds), 2))
+for i in range(len(Ds)):
+    exp1[i, 0] = Ds[i]
+    exp1[i, 1] = E(targets, t, 0.6, 1.2, 100, Ds[i])
+plt.plot(exp1[:, 0], exp1[:, 1])
+plt.show()
 
 # =============================================================================
 # Experiment 2: Fix B, D, try different A, C
 # =============================================================================
-
+n = 1000
+# True Ans
+targets2 = np.zeros((n, 1))
+# Random t
+t2 = np.random.random((n,1))*100
+for i in range(n):
+    targets2[i] = F2(t2[i], 0.6, 1.2, 100, 0.4)
+As = np.array(range(-511, 512)) / 100
+Cs = np.array(range(-511, 512)) / 100
+exp2 = np.zeros((len(As) * len(Cs), 3))
+X = np.zeros((len(As) * len(Cs), 1))
+Y = np.zeros((len(As) * len(Cs), 1))
+Z = np.zeros((len(As) * len(Cs), 1))
+i = 0
+for j in range(len(As)):
+    for k in range(len(Cs)):
+        X[i] = As[j]
+        Y[i] = Cs[k]
+        Z[i] = E(targets2, t2, As[j], 1.2, Cs[k], 0.4)
+        i += 1
+fig = plt.figure()
+ax = fig.gca(projection = '3d')
+#X = exp2[:, 0]
+#Y = exp2[:, 1]
+#Z = exp2[:, 2]
+surf = ax.plot_surface(X, Y, Z, cmap = cm.jet, rstride = 1, cstride = 1, linewidth = 0)
+fig.colorbar(surf, shrink = 0.5, aspect = 5)
+plt.show()
 # =============================================================================
 # Genetic Algorithm
 # =============================================================================
