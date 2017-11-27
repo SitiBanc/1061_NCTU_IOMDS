@@ -93,10 +93,10 @@ for generation in range(100):
         # Calculate Fitness using Energy Function
         gene = pop[i, :]
         # binary to decimal
-        A = np.sum(2 ** np.array(range(10)) * gene[0, :10] - 511) / 100
-        B = np.sum(2 ** np.array(range(10)) * gene[0, 10:20] - 511) / 100
-        C = np.sum(2 ** np.array(range(10)) * gene[0, 20:30] - 511)
-        D = np.sum(2 ** np.array(range(10)) * gene[0, 30:] - 511) / 100
+        A = np.sum(2 ** np.array(range(10)) * gene[:10] - 511) / 100
+        B = np.sum(2 ** np.array(range(10)) * gene[10:20] - 511) / 100
+        C = np.sum(2 ** np.array(range(10)) * gene[20:30] - 511)
+        D = np.sum(2 ** np.array(range(10)) * gene[30:] - 511) / 100
         fit[i] = E(b2, A2, A, B, C, D)
     # Using Tourment Select to decide survival
     sortf = np.argsort(fit)

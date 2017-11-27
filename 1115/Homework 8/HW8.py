@@ -44,6 +44,7 @@ exp1 = np.zeros((len(Ds), 2))
 for i in range(len(Ds)):
     exp1[i, 0] = Ds[i]
     exp1[i, 1] = E(targets, t, 0.6, 1.2, 100, Ds[i])
+# Plot
 plt.plot(exp1[:, 0], exp1[:, 1])
 plt.show()
 
@@ -59,28 +60,27 @@ for i in range(n):
     targets2[i] = F2(t2[i], 0.6, 1.2, 100, 0.4)
 As = np.array(range(-511, 512)) / 100
 Cs = np.array(range(-511, 512)) / 100
-exp2 = np.zeros((len(As) * len(Cs), 3))
-X = np.zeros((len(As) * len(Cs), 1))
-Y = np.zeros((len(As) * len(Cs), 1))
-Z = np.zeros((len(As) * len(Cs), 1))
-i = 0
+X = np.zeros((len(As), len(Cs)))
+Y = np.zeros((len(As), len(Cs)))
+Z = np.zeros((len(As), len(Cs)))
 for j in range(len(As)):
     for k in range(len(Cs)):
-        X[i] = As[j]
-        Y[i] = Cs[k]
-        Z[i] = E(targets2, t2, As[j], 1.2, Cs[k], 0.4)
-        i += 1
+        X[k, j] = As[j]
+        Y[k, j] = Cs[k]
+        Z[k, j] = E(targets2, t2, As[j], 1.2, Cs[k], 0.4)
+# Plot
 fig = plt.figure()
 ax = fig.gca(projection = '3d')
-#X = exp2[:, 0]
-#Y = exp2[:, 1]
-#Z = exp2[:, 2]
+ax.set_zlim(60000, 640000)
 surf = ax.plot_surface(X, Y, Z, cmap = cm.jet, rstride = 1, cstride = 1, linewidth = 0)
 fig.colorbar(surf, shrink = 0.5, aspect = 5)
 plt.show()
 # =============================================================================
-# Genetic Algorithm
+# Experiment 3: LPPL
 # =============================================================================
+# Read Data
+data = np.loadtxt('Bubble.txt')
+# Genetic Algorithm
 # Genes of Initial Population
 pop = np.random.randint(0, 2, (10000, 40))
 fit = np.zeros((10000, 1))
@@ -92,11 +92,11 @@ for generation in range(100):
         # Calculate Fitness using Energy Function
         gene = pop[i, :]
         # binary to decimal
-        A = np.sum(2 ** np.array(range(10)) * gene[0, :10] - 511) / 100
-        B = np.sum(2 ** np.array(range(10)) * gene[0, 10:20] - 511) / 100
-        C = np.sum(2 ** np.array(range(10)) * gene[0, 20:30] - 511)
-        D = np.sum(2 ** np.array(range(10)) * gene[0, 30:] - 511) / 100
-        fit[i] = E(b2, A2, A, B, C, D)
+        tc = np.sum(2 ** np.array(range(10)) * gene[:10] - 511) / 100
+        beta = np.sum(2 ** np.array(range(10)) * gene[10:20] - 511) / 100
+        omega = np.sum(2 ** np.array(range(10)) * gene[20:30] - 511)
+        phi = np.sum(2 ** np.array(range(10)) * gene[30:] - 511) / 100
+        fit[i] = E(targets, t, tc, beta, omega, phi)
     # Using Tourment Select to decide survival
     sortf = np.argsort(fit[:, 0])
     pop = pop[sortf, :]
@@ -122,3 +122,4 @@ for generation in range(100):
             pop[m, n] = 0
         else:
             pop[m, n] = 1
+# Linear Regression
