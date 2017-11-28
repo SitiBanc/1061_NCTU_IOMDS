@@ -28,12 +28,13 @@ def E(b2, A2, A, B, C, D):
     return sum
 
 # =============================================================================
-# Case 1
+# Case 1: Linear Regression
 # =============================================================================
 n = 1000
-b = np.zeros((n, 1))    # True Ans
-A1 = np.zeros((n, 5))    # Linear Regression
+b = np.zeros((n, 1))     # True Ans
+A1 = np.zeros((n, 5))    # Coefficients of original function
 for i in range(n):
+    # Generate Data
     t = np.random.random() * 100
     b[i] = F1(t)
     A1[i, 0] = t ** 4
@@ -46,7 +47,7 @@ x = np.linalg.lstsq(A1, b)[0]
 print(x)
 
 # =============================================================================
-# Case 2
+# Case 2: Non-Linear
 # =============================================================================
 n = 1000
 b2 = np.zeros((n, 1))

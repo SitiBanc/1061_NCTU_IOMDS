@@ -8,7 +8,7 @@ Created on Wed Nov 22 13:07:44 2017
 import numpy as np
 from matplotlib import cm
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 
 
 # Linear Regression
@@ -25,6 +25,15 @@ def F2(t, A, B, C, D):
 def E(targets, t, A, B, C, D):
     return np.sum(abs(F2(t, A, B, C, D) - targets))
 
+
+# Energy Function for LPPL
+def E2(ans, A, B, C, tc, t, beta, omega, phi):
+    return LPPL(A, B, C, tc, t, beta, omega, phi) - ans
+
+
+# Log-Periodic Power Laws for bubble modeling
+def LPPL(A, B, C, tc, t, beta, omega, phi):
+    return A + (B * np.power(tc - t, beta)) * (1 + (C * np.cos((omega * np.log(tc - t)) + phi)))
 
 # =============================================================================
 # Experiment 1: Fix A, B, C, try different D
@@ -74,51 +83,125 @@ ax = fig.gca(projection = '3d')
 surf = ax.plot_surface(X, Y, Z, cmap = cm.jet, rstride = 1, cstride = 1, linewidth = 0)
 fig.colorbar(surf, shrink = 0.5, aspect = 5)
 plt.show()
+
 # =============================================================================
 # Experiment 3: LPPL
 # =============================================================================
 # Read Data
 data = np.loadtxt('Bubble.txt')
+price = data[:500, 1]
 # Genetic Algorithm
 # Genes of Initial Population
-pop = np.random.randint(0, 2, (10000, 40))
+pop = np.random.randint(0, 2, (10000, 25))
 fit = np.zeros((10000, 1))
+# Parameters
+parameters = np.zeros((10000, 4))
+
 
 for generation in range(100):
-#    print('Generation:', generation)
-    # Reproduction
+    print('---------- Generation', generation + 1, '----------')
+    # Calculate Fitness using Energy Function
     for i in range(10000):
-        # Calculate Fitness using Energy Function
+        print('Genes Decoding...')
         gene = pop[i, :]
         # binary to decimal
-        tc = np.sum(2 ** np.array(range(10)) * gene[:10] - 511) / 100
-        beta = np.sum(2 ** np.array(range(10)) * gene[10:20] - 511) / 100
-        omega = np.sum(2 ** np.array(range(10)) * gene[20:30] - 511)
-        phi = np.sum(2 ** np.array(range(10)) * gene[30:] - 511) / 100
-        fit[i] = E(targets, t, tc, beta, omega, phi)
+        # tc: 7 bits, range from 500 ~ 627
+        parameters[i, 0] = np.sum(2 ** np.array(range(7)) * gene[:7]) + 500
+        # beta: 8 bits, range from 1/257 ~ 256/257
+        parameters[i, 1] = (np.sum(2 ** np.array(range(8)) * gene[7:15]) + 1) / 257
+        # omega: 4 bits, range from 4 ~ 19
+        parameters[i, 2] = np.sum(2 ** np.array(range(4)) * gene[15:19]) + 4
+        # phi: 6 bits, range from 0.01 ~ 63.02/2pi
+        parameters[i, 3] = (np.sum(2 ** np.array(range(6)) * gene[19:]) + 0.01) / (63.02 / (np.pi * 2))
+        print('Linear Regression...')
+        # Linear Regression
+        items = np.zeros((500, 3))
+        # A's coefficient
+        items[:, 0] += 1
+    #    for j in range(500):
+    #        # A's coefficient
+    #        items[j, 0] = 1
+    #        # B's coefficient
+    #        items[j, 1] = np.power(parameters[:, 0] - j, parameters[i, 1])
+    #        # BC's coefficient
+    #        items[j, 2] = items[j, 1] * np.cos((parameters[i, 2] * np.log(parameters[i, 0] - j)) + parameters[i, 3])
+        # A's coefficient
+        items[:, 0] += 1
+        # B's coefficient
+        items[:, 1] += np.power(parameters[:, 0] - j, parameters[:, 1])
+        # BC's coefficient
+        items[:, 2] += items[j, 1] * np.cos((parameters[:, 2] * np.log(parameters[:, 0] - j)) + parameters[:, 3])
+        # Least Square
+        x = np.linalg.lstsq(items, price)[0]
+        A = x[0, 0]
+        B = x[1, 0]
+        C = x[2, 0] / B
+        print('Calculate Fitness...')
+        fit[i] = E2()
+        
+    # Elimination
     # Using Tourment Select to decide survival
+    # Top 100 survived, others will be replaced during crossover
+    # Sorting population according to its fitness
+    print('Eliminating...')
     sortf = np.argsort(fit[:, 0])
     pop = pop[sortf, :]
+    
+    # Reproduction
     # Crossover using mask (0: mother; 1: father)
+    # Top 100 survived, crossover till population is filled
+    print('Reproducing...')
     for i in range(100, 10000):
         # fid: father id; mid: mother id
         fid = np.random.randint(0, 100)
         mid = np.random.randint(0, 100)
         while mid == fid:
             mid = np.random.randint(0, 100)
-        mask = np.random.randint(0, 2, (1, 40))
+        mask = np.random.randint(0, 2, (1, 25))
+        # Copy mother
         child = pop[mid, :]
         father = pop[fid, :]
+        # Apply mask (if mask == 1, use father's genes)
         child[mask[0, :] == 1] = father[mask[0, :] == 1]
         pop[i, :] = child
+        
     # Mutation
+    # Randomly select 100 ones from the population that's gonna be mutated
+    print('Mutating...')
     for i in range(100):
         # the mutated ones
         m = np.random.randint(0, 10000)
         # the mutated genes
-        n = np.random.randint(0, 40)
+        n = np.random.randint(0, 25)
+        # Switch genes
         if pop[m, n] == 1:
             pop[m, n] = 0
         else:
             pop[m, n] = 1
-# Linear Regression
+
+# Calculate Fitness
+print('---------- Final Result ----------')
+print('Calculate Final Fitness...')
+for i in range(10000):
+    gene = pop[i, :]
+    # binary to decimal
+    tc = np.sum(2 ** np.array(range(7)) * gene[:7]) + 500
+    beta = (np.sum(2 ** np.array(range(8)) * gene[7:15]) + 1) / 257
+    omega = np.sum(2 ** np.array(range(4)) * gene[15:19]) + 4
+    phi = np.sum(2 ** np.array(range(6)) * gene[19:]) + 0.01 / (63.02 / np.pi * 2)
+    fit[i] = E(data[:, 1], ts, tc, beta, omega, phi)
+
+# Sorting population according to its fitness
+print('Sorting Final Population...')
+sortf = np.argsort(fit[:, 0])
+pop = pop[sortf, :]
+
+# Best Result
+best_gene = pop[0, :]
+# binary to decimal
+best_tc = np.sum(2 ** np.array(range(7)) * best_gene[:7]) + 500
+best_beta = (np.sum(2 ** np.array(range(8)) * best_gene[7:15]) + 1) / 257
+best_omega = np.sum(2 ** np.array(range(4)) * best_gene[15:19]) + 4
+best_phi = (np.sum(2 ** np.array(range(6)) * best_gene[19:]) + 0.01) / (63.02 / (np.pi * 2))
+best_fitness = E(targets, data[:, 1], tc, beta, omega, phi)
+print('Best Parameters:\ntc:\t', best_tc, '\nbeta:\t', best_beta, '\nomega:\t', best_omega, '\nphi:\t', best_phi)
