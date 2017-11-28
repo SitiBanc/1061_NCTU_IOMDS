@@ -59,7 +59,7 @@ t2 = np.random.random((n,1))*100
 for i in range(n):
     targets2[i] = F2(t2[i], 0.6, 1.2, 100, 0.4)
 As = np.array(range(-511, 512)) / 100
-Cs = np.array(range(-511, 512)) / 100
+Cs = np.array(range(-511, 512))
 X = np.zeros((len(As), len(Cs)))
 Y = np.zeros((len(As), len(Cs)))
 Z = np.zeros((len(As), len(Cs)))
@@ -71,7 +71,6 @@ for j in range(len(As)):
 # Plot
 fig = plt.figure()
 ax = fig.gca(projection = '3d')
-ax.set_zlim(60000, 640000)
 surf = ax.plot_surface(X, Y, Z, cmap = cm.jet, rstride = 1, cstride = 1, linewidth = 0)
 fig.colorbar(surf, shrink = 0.5, aspect = 5)
 plt.show()
@@ -86,7 +85,7 @@ pop = np.random.randint(0, 2, (10000, 40))
 fit = np.zeros((10000, 1))
 
 for generation in range(100):
-    print('Generation:', generation)
+#    print('Generation:', generation)
     # Reproduction
     for i in range(10000):
         # Calculate Fitness using Energy Function
