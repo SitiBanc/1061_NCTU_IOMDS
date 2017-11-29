@@ -28,12 +28,12 @@ def E(targets, t, A, B, C, D):
 
 # Energy Function for LPPL
 def E2(ans, A, B, C, tc, t, beta, omega, phi):
-    return np.mean(abs(LPPL(A, B, C, tc, t, beta, omega, phi) - ans))
+    return np.sum(abs(LPPL(A, B, C, tc, t, beta, omega, phi) - ans))
 
 
 # Log-Periodic Power Laws for bubble modeling
 def LPPL(A, B, C, tc, t, beta, omega, phi):
-    return A + (B * np.power(tc - t, beta)) * (1 + (C * np.cos((omega * np.log(tc - t)) + phi)))
+    return A + (B * np.power(tc - t, beta)) * (1 + (C * np.cos(omega * np.log(tc - t) + phi)))
 
 
 # Genes Decoding
@@ -185,7 +185,7 @@ for generation in range(50):
 print('---------- Final Result ----------')
 print('Calculate Final Fitness...')
 for i in range(len(pop)):
-        # Decode Genes
+        # Decode Genes6
         parameters[i, 0], parameters[i, 1], parameters[i, 2], parameters[i, 3] = decodeGenes(pop[i, :])
         # Linear Regression
         coefs = np.zeros((len(price), 3))
@@ -213,10 +213,10 @@ fit = fit[sortf]
 # Best Result
 print('Best Parameters:\ntc:\t', parameters[0, 0], '\nbeta:\t', parameters[0, 1], '\nomega:\t', parameters[0, 2], '\nphi:\t', parameters[0, 3])
 print('A:\t', parameters[0, 4], '\nB:\t', parameters[0, 5], '\nC:\t', parameters[0, 6])
-print('MAE:\t', fit[0, 0])
+print('MAE:\t', fit[0, 0] / len(price))
 
 # Apply Parameters
-model = LPPL(parameters[i, 4], parameters[i, 5], parameters[i, 6], parameters[i, 0], np.array(range(len(price))), parameters[i, 1], parameters[i, 2], parameters[i, 3])
+model = LPPL(parameters[0, 4], parameters[0, 5], parameters[0, 6], parameters[0, 0], np.array(range(len(price))), parameters[0, 1], parameters[0, 2], parameters[0, 3])
 # Ploting
 # Original
 plt.plot(data[:, 1])
