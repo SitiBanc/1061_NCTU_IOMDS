@@ -28,12 +28,26 @@ def E(targets, t, A, B, C, D):
 
 # Energy Function for LPPL
 def E2(ans, A, B, C, tc, t, beta, omega, phi):
-    return LPPL(A, B, C, tc, t, beta, omega, phi) - ans
+    return np.mean(abs(LPPL(A, B, C, tc, t, beta, omega, phi) - ans))
 
 
 # Log-Periodic Power Laws for bubble modeling
 def LPPL(A, B, C, tc, t, beta, omega, phi):
     return A + (B * np.power(tc - t, beta)) * (1 + (C * np.cos((omega * np.log(tc - t)) + phi)))
+
+
+# Genes Decoding
+def decodeGenes(gene):
+    # binary to decimal
+    # tc: 6 bits, range from 550 ~ 613
+    tc = np.sum(2 ** np.array(range(6)) * gene[:6]) + 550
+    # beta: 8 bits, range from 1/257 ~ 256/257
+    beta = (np.sum(2 ** np.array(range(8)) * gene[6:14]) + 1) / 257
+    # omega: 4 bits, range from 5 ~ 20
+    omega = np.sum(2 ** np.array(range(4)) * gene[14:18]) + 5
+    # phi: 6 bits, range from 0.01 ~ 63.02/2pi
+    phi = (np.sum(2 ** np.array(range(6)) * gene[18:]) + 0.01) / (63.02 / (np.pi * 2))
+    return tc, beta, omega, phi
 
 # =============================================================================
 # Experiment 1: Fix A, B, C, try different D
@@ -89,55 +103,41 @@ plt.show()
 # =============================================================================
 # Read Data
 data = np.loadtxt('Bubble.txt')
-price = data[:500, 1]
+price = data[:550, 1]
 # Genetic Algorithm
 # Genes of Initial Population
-pop = np.random.randint(0, 2, (10000, 25))
-fit = np.zeros((10000, 1))
+pop = np.random.randint(0, 2, (10000, 24))
+fit = np.zeros((len(pop), 1))
 # Parameters
-parameters = np.zeros((10000, 4))
+# tc, beta, omega, phi, A, B, C
+parameters = np.zeros((len(pop), 7))
 
-
-for generation in range(100):
+for generation in range(50):
     print('---------- Generation', generation + 1, '----------')
     # Calculate Fitness using Energy Function
-    for i in range(10000):
-        print('Genes Decoding...')
-        gene = pop[i, :]
-        # binary to decimal
-        # tc: 7 bits, range from 500 ~ 627
-        parameters[i, 0] = np.sum(2 ** np.array(range(7)) * gene[:7]) + 500
-        # beta: 8 bits, range from 1/257 ~ 256/257
-        parameters[i, 1] = (np.sum(2 ** np.array(range(8)) * gene[7:15]) + 1) / 257
-        # omega: 4 bits, range from 4 ~ 19
-        parameters[i, 2] = np.sum(2 ** np.array(range(4)) * gene[15:19]) + 4
-        # phi: 6 bits, range from 0.01 ~ 63.02/2pi
-        parameters[i, 3] = (np.sum(2 ** np.array(range(6)) * gene[19:]) + 0.01) / (63.02 / (np.pi * 2))
-        print('Linear Regression...')
+    print('Calculate Fitness...')
+    for i in range(len(pop)):
+        # Decode Genes
+#        print('Genes Decoding...')
+        parameters[i, 0], parameters[i, 1], parameters[i, 2], parameters[i, 3] = decodeGenes(pop[i, :])
+        
+#        print('Linear Regression...')
         # Linear Regression
-        items = np.zeros((500, 3))
+        coefs = np.zeros((len(price), 3))
         # A's coefficient
-        items[:, 0] += 1
-    #    for j in range(500):
-    #        # A's coefficient
-    #        items[j, 0] = 1
-    #        # B's coefficient
-    #        items[j, 1] = np.power(parameters[:, 0] - j, parameters[i, 1])
-    #        # BC's coefficient
-    #        items[j, 2] = items[j, 1] * np.cos((parameters[i, 2] * np.log(parameters[i, 0] - j)) + parameters[i, 3])
-        # A's coefficient
-        items[:, 0] += 1
-        # B's coefficient
-        items[:, 1] += np.power(parameters[:, 0] - j, parameters[:, 1])
-        # BC's coefficient
-        items[:, 2] += items[j, 1] * np.cos((parameters[:, 2] * np.log(parameters[:, 0] - j)) + parameters[:, 3])
+        coefs[:, 0] += 1
+        for t in range(len(price)):
+            # B's coefficient
+            coefs[t, 1] = np.power(parameters[i, 0] - t, parameters[i, 1])
+            # BC's coefficient
+            coefs[t, 2] = coefs[t, 1] * np.cos((parameters[i, 2] * np.log(parameters[i, 0] - t)) + parameters[i, 3])
         # Least Square
-        x = np.linalg.lstsq(items, price)[0]
-        A = x[0, 0]
-        B = x[1, 0]
-        C = x[2, 0] / B
-        print('Calculate Fitness...')
-        fit[i] = E2()
+        x = np.linalg.lstsq(coefs, price)[0]
+        parameters[i, 4] = x[0]
+        parameters[i, 5] = x[1]
+        parameters[i, 6] = x[2] / parameters[i, 5]
+#        print('Calculate Fitness...')
+        fit[i] = E2(price, parameters[i, 4], parameters[i, 5], parameters[i, 6], parameters[i, 0], np.array(range(len(price))), parameters[i, 1], parameters[i, 2], parameters[i, 3])
         
     # Elimination
     # Using Tourment Select to decide survival
@@ -146,18 +146,20 @@ for generation in range(100):
     print('Eliminating...')
     sortf = np.argsort(fit[:, 0])
     pop = pop[sortf, :]
+    parameters = parameters[sortf, :]
+    fit = fit[sortf]
     
     # Reproduction
     # Crossover using mask (0: mother; 1: father)
     # Top 100 survived, crossover till population is filled
     print('Reproducing...')
-    for i in range(100, 10000):
+    for i in range(100, len(pop)):
         # fid: father id; mid: mother id
         fid = np.random.randint(0, 100)
         mid = np.random.randint(0, 100)
         while mid == fid:
             mid = np.random.randint(0, 100)
-        mask = np.random.randint(0, 2, (1, 25))
+        mask = np.random.randint(0, 2, (1, pop.shape[1]))
         # Copy mother
         child = pop[mid, :]
         father = pop[fid, :]
@@ -170,9 +172,9 @@ for generation in range(100):
     print('Mutating...')
     for i in range(100):
         # the mutated ones
-        m = np.random.randint(0, 10000)
+        m = np.random.randint(0, pop.shape[0])
         # the mutated genes
-        n = np.random.randint(0, 25)
+        n = np.random.randint(0, pop.shape[1])
         # Switch genes
         if pop[m, n] == 1:
             pop[m, n] = 0
@@ -182,26 +184,42 @@ for generation in range(100):
 # Calculate Fitness
 print('---------- Final Result ----------')
 print('Calculate Final Fitness...')
-for i in range(10000):
-    gene = pop[i, :]
-    # binary to decimal
-    tc = np.sum(2 ** np.array(range(7)) * gene[:7]) + 500
-    beta = (np.sum(2 ** np.array(range(8)) * gene[7:15]) + 1) / 257
-    omega = np.sum(2 ** np.array(range(4)) * gene[15:19]) + 4
-    phi = np.sum(2 ** np.array(range(6)) * gene[19:]) + 0.01 / (63.02 / np.pi * 2)
-    fit[i] = E(data[:, 1], ts, tc, beta, omega, phi)
+for i in range(len(pop)):
+        # Decode Genes
+        parameters[i, 0], parameters[i, 1], parameters[i, 2], parameters[i, 3] = decodeGenes(pop[i, :])
+        # Linear Regression
+        coefs = np.zeros((len(price), 3))
+        # A's coefficient
+        coefs[:, 0] += 1
+        for t in range(len(price)):
+            # B's coefficient
+            coefs[t, 1] = np.power(parameters[i, 0] - t, parameters[i, 1])
+            # BC's coefficient
+            coefs[t, 2] = coefs[t, 1] * np.cos((parameters[i, 2] * np.log(parameters[i, 0] - t)) + parameters[i, 3])
+        # Least Square
+        x = np.linalg.lstsq(coefs, price)[0]
+        parameters[i, 4] = x[0]
+        parameters[i, 5] = x[1]
+        parameters[i, 6] = x[2] / parameters[i, 5]
+        fit[i] = E2(price, parameters[i, 4], parameters[i, 5], parameters[i, 6], parameters[i, 0], np.array(range(len(price))), parameters[i, 1], parameters[i, 2], parameters[i, 3])
 
 # Sorting population according to its fitness
 print('Sorting Final Population...')
 sortf = np.argsort(fit[:, 0])
 pop = pop[sortf, :]
+parameters = parameters[sortf, :]
+fit = fit[sortf]
 
 # Best Result
-best_gene = pop[0, :]
-# binary to decimal
-best_tc = np.sum(2 ** np.array(range(7)) * best_gene[:7]) + 500
-best_beta = (np.sum(2 ** np.array(range(8)) * best_gene[7:15]) + 1) / 257
-best_omega = np.sum(2 ** np.array(range(4)) * best_gene[15:19]) + 4
-best_phi = (np.sum(2 ** np.array(range(6)) * best_gene[19:]) + 0.01) / (63.02 / (np.pi * 2))
-best_fitness = E(targets, data[:, 1], tc, beta, omega, phi)
-print('Best Parameters:\ntc:\t', best_tc, '\nbeta:\t', best_beta, '\nomega:\t', best_omega, '\nphi:\t', best_phi)
+print('Best Parameters:\ntc:\t', parameters[0, 0], '\nbeta:\t', parameters[0, 1], '\nomega:\t', parameters[0, 2], '\nphi:\t', parameters[0, 3])
+print('A:\t', parameters[0, 4], '\nB:\t', parameters[0, 5], '\nC:\t', parameters[0, 6])
+print('MAE:\t', fit[0, 0])
+
+# Apply Parameters
+model = LPPL(parameters[i, 4], parameters[i, 5], parameters[i, 6], parameters[i, 0], np.array(range(len(price))), parameters[i, 1], parameters[i, 2], parameters[i, 3])
+# Ploting
+# Original
+plt.plot(data[:, 1])
+# Regression
+plt.plot(model)
+plt.show()
