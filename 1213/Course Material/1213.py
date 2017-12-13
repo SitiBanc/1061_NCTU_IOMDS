@@ -8,7 +8,7 @@ Created on Wed Dec 13 18:46:29 2017
 import math
 import numpy as np
 
-# feature extraction
+# Feature Extraction
 def fe(sample, ftable, c):      # sample is a (N, 361) matri
     ftype = ftable[c][0]
     y = ftable[c][1]
@@ -59,46 +59,38 @@ trainface = npzfile['arr_0']
 trainnonface = npzfile['arr_1']
 testface = npzfile['arr_2']
 testnonface = npzfile['arr_3']
+trpf = np.load('trpf.npy')
+trnf = np.load('trnf.npy')
+tepf = np.load('tepf.npy')
+tenf = np.load('tenf.npy')
 
 # =============================================================================
 # Features Extraction
 # =============================================================================
-# data volume
+# volumes
 # tr: train; te: test; p:positive; n: negative
 trpn = trainface.shape[0]
 trnn = trainnonface.shape[0]
 tepn = testface.shape[0]
 tenn = testnonface.shape[0]
-fn = 0  # feature numbers
-# ftable stores every possible filter position
+fn = 0  # total features numbers
+# ftable stores every possible filter position & filter shape
 ftable = []    # feature, y, x, h, w
 # x, y, starting position; h, w: filter height & width
 for y in range(19):
     for x in range(19):
         for h in range(2, 20):
             for w in range(2, 20):
+                # check whethere the bottom right position is still inside the image
                 if y + h <= 19 and x + w * 2 <= 19:
                     fn += 1
                     ftable.append([0, y, x, h, w])
-for y in range(19):
-    for x in range(19):
-        for h in range(2, 20):
-            for w in range(2, 20):
                 if y + h * 2 <= 19 and x + w <= 19:
                     fn += 1
                     ftable.append([1, y, x, h, w])
-for y in range(19):
-    for x in range(19):
-        for h in range(2, 20):
-            for w in range(2, 20):
                 if y + h  <= 19 and x + w * 3 <= 19:
                     fn += 1
                     ftable.append([2, y, x, h, w])
-for y in range(19):
-    for x in range(19):
-        for h in range(2, 20):
-            for w in range(2, 20):
-                # check whethere the bottom right position is still inside the image
                 if y + h * 2 <= 19 and x + w * 2 <= 19:
                     fn += 1
                     ftable.append([3, y, x, h, w])
@@ -108,10 +100,6 @@ for y in range(19):
 #trnf = np.zeros((trnn, fn))
 #tepf = np.zeros((tepn, fn))
 #tenf = np.zeros((tenn, fn))
-trpf = np.load('trpf.npy')
-trnf = np.load('trnf.npy')
-tepf = np.load('tepf.npy')
-tenf = np.load('tenf.npy')
 
 #for c in range(fn):
 #    trpf[:, c] = fe(trainface, ftable, c)
@@ -120,15 +108,14 @@ tenf = np.load('tenf.npy')
 #    tenf[:, c] = fe(testnonface, ftable, c)
 
 # =============================================================================
-# Adaboost
+# Adaboost Training
 # =============================================================================
-# Training
 # weights
 pw = np.ones((trpn, 1)) / trpn / 2
 nw = np.ones((trnn, 1)) / trnn / 2
 
 SC = []     # Strong Classifier
-for t in range(5):
+for t in range(10):
     weightsum = np.sum(pw) + np.sum(nw)
     pw = pw / weightsum
     nw = nw / weightsum
