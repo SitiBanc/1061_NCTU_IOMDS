@@ -10,23 +10,48 @@ import numpy as np
 
 
 def integral_image(image):
-    return image.cumsum(0).cumsum(1)
+    # Add Padding to match the cords <- cords of index (0, 0) should be (1, 1)
+    img = np.zeros((image.shape[0] + 1, image.shape[1] + 1))
+    img[1:, 1:] = image.cumsum(0).cumsum(1)
+    return img
 
 
-def get_image_value(top_left, bottom_right, image):
+def get_integral_images(images, shape):
     '''
+    images: ndarray, flatten integral images
+    shape: tuple(y, x), original shape of the integral image
+    '''
+    # Adjusting array's shape (add padding)
+    new_width = (shape[0] + 1) * (shape[1] + 1)
+    new_imgs = np.zeros((images.shape[0], new_width))
+    for i in range(len(images)):
+        img = integral_image(images[i, :].reshape(shape))
+        new_imgs[i, :] = img.flatten()
+    return new_imgs
+
+
+def get_image_value(image, shape, top_left, bottom_right):
+    '''
+    image: ndarray, flatten integral image
+    shape: tuple, original shape of image
     top_left: tuple(y, x), the index of the top left corner
     bottom_right: tuple, index of the bottom right corner
-    image: ndarray, integral image
     '''
+    # Reshape
+    image = image.reshape(shape)
     A = image[top_left[0], top_left[1]]
     D = image[bottom_right[0], bottom_right[1]]
     B = image[top_left[0], bottom_right[1]]
     C = image[bottom_right[0], top_left[1]]
-    return A + D - B - C
+    return A - B - C + D
 
 # Feature Extraction
-def fe(sample, ftable, c):      # sample is a (N, 361) matrix
+def fe(sample, ftable, c):
+    '''
+    sample: (N, 361) ndarray, (flatten integral image data)
+    ftable: list, feature table(feature type, y, x, h, w)
+    c: int, feature index (of ftable)
+    '''
     ftype = ftable[c][0]
     y = ftable[c][1]
     x = ftable[c][2]
@@ -39,7 +64,13 @@ def fe(sample, ftable, c):      # sample is a (N, 361) matrix
         black = np.sum(sample[:, T[y:y + h, x + w:x + w * 2].flatten()], axis = 1)
         '''
         Should be something like this
-        white = get_image_value((y, x), (y + h, x + w), )
+        single data version:
+        # This is wrong though, cause c is the index of ftable not sample (regarding sample[c, :])
+        white = get_image_value((y, x), (y + h, x + w), sample[c, :].reshape((20, 20))
+        black = get_image_value((y, x + w), (y + h, x + w * 2), sample[c, :].reshape((20, 20))
+        # multiple data version:
+        white = np.apply_along_axis(get_image_value, 1, trainface, shape = (20,20) , top_left = (y, x), bottom_right = (y + h, x + w))
+        black = np.apply_along_axis(get_image_value, 1, trainface, shape = (20,20) , top_left = (y ,x + w), bottom_right =( y + h, x + w * 2))
         '''
     elif ftype == 1:
         white = np.sum(sample[:, T[y + h:y + h * 2, x:x + w].flatten()], axis = 1)
@@ -80,52 +111,57 @@ trainface = npzfile['arr_0']
 trainnonface = npzfile['arr_1']
 testface = npzfile['arr_2']
 testnonface = npzfile['arr_3']
-trpf = np.load('trpf.npy')
-trnf = np.load('trnf.npy')
-tepf = np.load('tepf.npy')
-tenf = np.load('tenf.npy')
+#trpf = np.load('trpf.npy')
+#trnf = np.load('trnf.npy')
+#tepf = np.load('tepf.npy')
+#tenf = np.load('tenf.npy')
 
 # =============================================================================
 # Features Extraction
 # =============================================================================
-# volumes
-# tr: train; te: test; p:positive; n: negative
+# data size
+# tr: train/te: test; p:positive/n: negative; n: number/f: feature
 trpn = trainface.shape[0]
 trnn = trainnonface.shape[0]
 tepn = testface.shape[0]
 tenn = testnonface.shape[0]
 fn = 0  # total features numbers
-# ftable stores every possible filter (starting) position & filter shape
+# ftable stores every possible feature filter (starting) position & shape
 ftable = []    # feature type, y, x, h, w
-filter_size = 19
+image_size = 19
 # Building ftable
-# x, y, starting position; h, w: filter height & width
-for y in range(filter_size):
-    for x in range(filter_size):
-        for h in range(2, filter_size + 1):
-            for w in range(2, filter_size + 1):
+# y, x: starting position; h, w: filter height & width
+for y in range(image_size):
+    for x in range(image_size):
+        for h in range(2, image_size + 1):
+            for w in range(2, image_size + 1):
                 # check whether the bottom right position is still inside the image
-                if y + h <= filter_size and x + w * 2 <= filter_size:
+                if y + h <= image_size and x + w * 2 <= image_size:
                     fn += 1
                     ftable.append([0, y, x, h, w])
-                if y + h * 2 <= filter_size and x + w <= filter_size:
+                if y + h * 2 <= image_size and x + w <= image_size:
                     fn += 1
                     ftable.append([1, y, x, h, w])
-                if y + h  <= filter_size and x + w * 3 <= filter_size:
+                if y + h  <= image_size and x + w * 3 <= image_size:
                     fn += 1
                     ftable.append([2, y, x, h, w])
-                if y + h * 2 <= filter_size and x + w * 2 <= filter_size:
+                if y + h * 2 <= image_size and x + w * 2 <= image_size:
                     fn += 1
                     ftable.append([3, y, x, h, w])
-
+# Integral Image
+integral_shape = (int(math.sqrt(trainface.shape[1])), int(math.sqrt(trainface.shape[1])))
+trainface = get_integral_images(trainface, integral_shape)
+trainnonface = get_integral_images(trainnonface, integral_shape)
+testface = get_integral_images(testface, integral_shape)
+testnonface = get_integral_images(testnonface, integral_shape)
 # feature numbers
-#trpf = np.zeros((trpn, fn))
-#trnf = np.zeros((trnn, fn))
-#tepf = np.zeros((tepn, fn))
-#tenf = np.zeros((tenn, fn))
-
-#for c in range(fn):
-#    trpf[:, c] = fe(trainface, ftable, c)
+trpf = np.zeros((trpn, fn))
+trnf = np.zeros((trnn, fn))
+tepf = np.zeros((tepn, fn))
+tenf = np.zeros((tenn, fn))
+# Get Features
+for c in range(fn):
+    trpf[:, c] = fe(trainface, ftable, c)
 #    trnf[:, c] = fe(trainnonface, ftable, c)
 #    tepf[:, c] = fe(testface, ftable, c)
 #    tenf[:, c] = fe(testnonface, ftable, c)
