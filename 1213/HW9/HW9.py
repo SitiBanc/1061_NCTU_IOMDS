@@ -70,7 +70,7 @@ def get_image_value(image, shape, top_left, bottom_right):
     C = image[bottom_right[0], top_left[1]]
     return A - B - C + D
 
-@jit
+
 def build_ftable(img_shape, min_filter_shape, max_filter_shape):
     '''
     img_shape: tuple(y, x), image shape

@@ -105,3 +105,9 @@ ENV/
 *.odt#
 
 *.npy
+
+Final/img/
+
+Final/rgb_img
+
+Final/rgb_img.zip
